@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}TC-{{ claim.number }} · Tally Claims{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('page_dashboard') }}">&larr; All claims</a></p>
+
+<div class="head">
+  <div>
+    <h1>TC-{{ claim.number }} &middot; {{ claim.merchant }}</h1>
+    <p class="muted">{{ claim.amount_cents | money(claim.currency) }} &middot; filed via {{ 'Claude (MCP)' if claim.source == 'claude' else 'the web app' }} &middot; {{ claim.created_at }} UTC</p>
+  </div>
+  <span class="badge big st-{{ claim.status }}">{{ claim.status }}</span>
+</div>
+
+{% if claim.flags %}
+<div class="card flags">
+  <h3>Policy checks</h3>
+  <ul>
+  {% for f in claim.flags %}<li><span class="badge sev-{{ f.severity }}">{{ f.severity }}</span> {{ f.message }}</li>{% endfor %}
+  </ul>
+</div>
+{% else %}
+<div class="card flags clean"><strong>&#10003; All policy checks passed.</strong></div>
+{% endif %}
+
+<div class="card">
+  <h3>Review</h3>
+  <form method="post" action="{{ url_for('page_claim_status', number=claim.number) }}" class="review">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <input name="note" placeholder="Reviewer note (optional)" maxlength="300" value="{{ claim.reviewer_note }}">
+    {% if claim.status == 'pending' %}
+      <button class="btn ok" name="action" value="approve" type="submit">Approve</button>
+      <button class="btn danger" name="action" value="reject" type="submit">Reject</button>
+    {% else %}
+      <button class="btn ghost" name="action" value="reopen" type="submit">Reopen</button>
+    {% endif %}
+  </form>
+  {% if claim.reviewer_note and claim.status != 'pending' %}<p class="muted">Note: {{ claim.reviewer_note }}</p>{% endif %}
+</div>
+
+<div class="card">
+  <h3>Details <span class="muted small">(edit anything, then save)</span></h3>
+  <form method="post" action="{{ url_for('page_claim_edit', number=claim.number) }}">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    {% include "_claim_form.html" %}
+    <button class="btn" type="submit">Save changes</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3>History</h3>
+  <ul class="events">
+  {% for e in events %}<li><span class="muted">{{ e.at }}</span> &middot; <strong>{{ e.actor }}</strong> {{ e.action }}{% if e.detail %} &mdash; {{ e.detail }}{% endif %}</li>{% endfor %}
+  </ul>
+</div>
+
+<form method="post" action="{{ url_for('page_claim_delete', number=claim.number) }}" onsubmit="return confirm('Delete TC-{{ claim.number }} permanently?');" class="deleteform">
+  <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+  <button class="linkbtn danger-text" type="submit">Delete this claim</button>
+</form>
+{% endblock %}

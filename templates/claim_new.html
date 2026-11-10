@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Add claim · Tally Claims{% endblock %}
+{% block content %}
+<p><a href="{{ url_for('page_dashboard') }}">&larr; All claims</a></p>
+<div class="card">
+  <h1>Add a claim manually</h1>
+  <p class="muted">Most claims arrive from Claude, but you can add one by hand too.</p>
+  <form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    {% include "_claim_form.html" %}
+    <button class="btn" type="submit">Create claim</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% if errors %}
+<div class="flash error"><strong>Please fix:</strong><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>
+{% endif %}
+<div class="grid">
+  <label>Merchant <input name="merchant" value="{{ form.get('merchant','') }}" required maxlength="120"></label>
+  <label>Employee <input name="employee" value="{{ form.get('employee','') }}" maxlength="80" placeholder="Who paid?"></label>
+  <label>Amount (total paid) <input name="amount" value="{{ form.get('amount','') }}" required inputmode="decimal" placeholder="23.50"></label>
+  <label>Currency <input name="currency" value="{{ form.get('currency','') }}" required maxlength="3" pattern="[A-Za-z]{3}" style="text-transform:uppercase"></label>
+  <label>Tax included (optional) <input name="tax_amount" value="{{ form.get('tax_amount','') }}" inputmode="decimal"></label>
+  <label>Date <input type="date" name="date" value="{{ form.get('date','') }}" required></label>
+  <label>Category
+    <select name="category" required>
+      {% for c in categories %}<option value="{{ c }}" {{ 'selected' if form.get('category') == c }}>{{ c }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Payment method <input name="payment_method" value="{{ form.get('payment_method','') }}" maxlength="40" placeholder="Visa 4242, cash…"></label>
+  <label class="full">Business purpose <input name="description" value="{{ form.get('description','') }}" maxlength="500" placeholder="e.g. Lunch with Acme team"></label>
+  <label class="full">Receipt notes <textarea name="receipt_notes" rows="3" maxlength="1000" placeholder="Line items or anything unclear on the receipt">{{ form.get('receipt_notes','') }}</textarea></label>
+</div>

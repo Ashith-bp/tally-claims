@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Connect &amp; policy · Tally Claims{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Connect Claude</h1>
+  <p>Your private connector link. Anyone with this link can file claims into your account, so keep it secret.</p>
+  <div class="copyrow">
+    <input id="mcpurl" readonly value="{{ mcp_url }}" onclick="this.select()">
+    <button class="btn" type="button" id="copybtn">Copy</button>
+  </div>
+  <ol class="steps">
+    <li>In Claude, open <strong>Customize &rarr; Connectors</strong>, click <strong>+ Add</strong>, then <strong>Add custom connector</strong>.</li>
+    <li>Name it <em>Tally Claims</em>, paste the link above, set authentication to <strong>No sign in</strong>, and save.</li>
+    <li>In a new chat, turn the connector on, attach a receipt, and say: <em>&ldquo;File this receipt as an expense claim for Priya, it was a client lunch.&rdquo;</em></li>
+    <li>Come back here to review, edit, approve and export.</li>
+  </ol>
+  <form method="post" action="{{ url_for('page_settings_token') }}" onsubmit="return confirm('Create a new link? The old link stops working immediately.');">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <button class="linkbtn danger-text" type="submit">Generate a new link (revokes the old one)</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Expense policy</h2>
+  <p class="muted">Limits apply per claim, in your policy currency. Set a limit to 0 for no limit. Leave a category name blank to remove it. Claude can only choose from these categories.</p>
+  <form method="post" action="{{ url_for('page_settings_policy') }}">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label class="inl">Policy currency <input name="base_currency" value="{{ g.user.base_currency }}" maxlength="3" pattern="[A-Za-z]{3}" required style="width:5rem;text-transform:uppercase"></label>
+    <table class="policy">
+      <thead><tr><th>Category</th><th>Limit per claim</th></tr></thead>
+      <tbody>
+      {% for name, limit in limits %}
+        <tr><td><input name="cat_name_{{ loop.index0 }}" value="{{ name }}" maxlength="40"></td>
+            <td><input name="cat_limit_{{ loop.index0 }}" value="{{ '%.2f'|format(limit|float) }}" inputmode="decimal"></td></tr>
+      {% endfor %}
+      {% for extra in range(limits|length, limits|length + 2) %}
+        <tr><td><input name="cat_name_{{ extra }}" placeholder="New category" maxlength="40"></td>
+            <td><input name="cat_limit_{{ extra }}" placeholder="0.00" inputmode="decimal"></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <input type="hidden" name="count" value="{{ limits|length + 2 }}">
+    <button class="btn" type="submit">Save policy</button>
+  </form>
+  <p class="muted small">Automatic checks that always run: possible duplicates, future dates, expenses older than 60 days, weekend spend, alcohol mentions, and large claims with no business purpose.</p>
+</div>
+<script>
+document.getElementById('copybtn').addEventListener('click', function () {
+  var input = document.getElementById('mcpurl');
+  input.select();
+  var done = function () { document.getElementById('copybtn').textContent = 'Copied'; };
+  if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(input.value).then(done, function () { document.execCommand('copy'); done(); }); }
+  else { document.execCommand('copy'); done(); }
+});
+</script>
+{% endblock %}

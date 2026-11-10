@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Log in · Tally Claims{% endblock %}
+{% block content %}
+<div class="hero">
+  <h1>Expense claims, filed by Claude.</h1>
+  <p>Snap a receipt, tell Claude to file it, and your team lead reviews, edits and approves it here. Claude does the reading. Tally does the filing, policy checks and CSV export.</p>
+</div>
+<div class="card narrow">
+  <h2>Log in</h2>
+  <form method="post">
+    <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+    <label>Email <input type="email" name="email" required autocomplete="username" autofocus></label>
+    <label>Password <input type="password" name="password" required autocomplete="current-password"></label>
+    <button class="btn" type="submit">Log in</button>
+  </form>
+  <p class="muted">New here? <a href="{{ url_for('page_signup') }}">Create an account</a></p>
+  {% if show_demo_hint %}
+  <div class="hint">
+    <strong>Reviewer demo account</strong><br>
+    Email: <code>{{ demo_email }}</code><br>
+    Password: <code>{{ demo_password }}</code>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

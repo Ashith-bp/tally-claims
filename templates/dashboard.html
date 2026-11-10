@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Claims · Tally Claims{% endblock %}
+{% block content %}
+<div class="stats">
+  <div class="stat"><span class="n">{{ stats.pending }}</span><span class="l">Pending review</span><span class="s">{{ stats.pending_totals | totals }}</span></div>
+  <div class="stat warn"><span class="n">{{ stats.flagged }}</span><span class="l">Pending with high flags</span><span class="s">Needs a closer look</span></div>
+  <div class="stat ok"><span class="n">{{ stats.approved }}</span><span class="l">Approved</span><span class="s">{{ stats.approved_totals | totals }}</span></div>
+  <div class="stat"><span class="n">{{ stats.rejected }}</span><span class="l">Rejected</span><span class="s">&nbsp;</span></div>
+</div>
+
+<div class="bar">
+  <div class="pills">
+    {% for key, label in [('all','All'),('pending','Pending'),('flagged','Flagged'),('approved','Approved'),('rejected','Rejected')] %}
+      <a class="pill {{ 'on' if status == key }}" href="{{ url_for('page_dashboard', status=key, q=q or None) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <form method="get" class="search">
+    <input type="hidden" name="status" value="{{ status }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search claims">
+    <button class="btn small" type="submit">Search</button>
+  </form>
+  <div class="actions">
+    <a class="btn small ghost" href="{{ url_for('page_export', status=status) }}">Export CSV</a>
+    <a class="btn small" href="{{ url_for('page_claim_new') }}">+ Add claim</a>
+  </div>
+</div>
+
+{% if claims %}
+<div class="card flush">
+<div class="tablewrap">
+<table>
+  <thead><tr><th>#</th><th>Date</th><th>Who</th><th>Merchant</th><th>Category</th><th class="r">Amount</th><th>Flags</th><th>Status</th><th>Via</th></tr></thead>
+  <tbody>
+  {% for c in claims %}
+    <tr onclick="location.href='{{ url_for('page_claim', number=c.number) }}'" class="click">
+      <td><a href="{{ url_for('page_claim', number=c.number) }}">TC-{{ c.number }}</a></td>
+      <td>{{ c.expense_date }}</td>
+      <td>{{ c.employee or '—' }}</td>
+      <td>{{ c.merchant }}</td>
+      <td>{{ c.category }}</td>
+      <td class="r">{{ c.amount_cents | money(c.currency) }}</td>
+      <td class="flagcell">
+        {% for f in c.flags if f.severity != 'info' %}<span class="badge sev-{{ f.severity }}" title="{{ f.message }}">{{ f.code.replace('_',' ') }}</span> {% endfor %}
+        {% if not c.flags %}<span class="muted">—</span>{% endif %}
+      </td>
+      <td><span class="badge st-{{ c.status }}">{{ c.status }}</span></td>
+      <td>{{ 'Claude' if c.source == 'claude' else 'Web' }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+</div>
+{% elif total == 0 %}
+<div class="card empty">
+  <h2>No claims yet</h2>
+  <p>Connect Claude, then try a prompt like this (attach a receipt photo):</p>
+  <blockquote>File this receipt as an expense claim for Priya. It was a client lunch.</blockquote>
+  <p><a class="btn" href="{{ url_for('page_settings') }}">Connect Claude</a></p>
+</div>
+{% else %}
+<div class="card empty"><p>No claims match this filter.</p></div>
+{% endif %}
+{% endblock %}
