@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: tally-claims
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEMO_TOKEN
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: SHOW_DEMO_HINT
+        value: "1"
